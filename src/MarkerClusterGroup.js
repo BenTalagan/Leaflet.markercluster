@@ -863,8 +863,13 @@ export var MarkerClusterGroup = L.MarkerClusterGroup = L.FeatureGroup.extend({
 			bottomCluster._childCount === cluster._childCount &&
 			this.options.spiderfyOnMaxZoom) {
 
-			// All child markers are contained in a single cluster from this._maxZoom to this cluster.
-			cluster.spiderfy();
+			// TODO : Replace condition
+			if(true && cluster._isSpiderfied) {
+				cluster.unspiderfy();
+			}
+			else {
+				cluster.spiderfy();
+			}
 		} else if (this.options.zoomToBoundsOnClick) {
 			cluster.zoomToBounds();
 		}
