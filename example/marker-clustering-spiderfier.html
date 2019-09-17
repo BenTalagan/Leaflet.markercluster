@@ -28,10 +28,11 @@
 
 		var map = L.map('map', {center: latlng, zoom: 15, layers: [tiles]});
 
-		var markers = L.markerClusterGroup({ spiderfyOnMaxZoom: false, showCoverageOnHover: false, zoomToBoundsOnClick: false });
+//		var markers = L.markerClusterGroup({ spiderfyOnMaxZoom: false, showCoverageOnHover: false, zoomToBoundsOnClick: false });
+		var markers = L.markerClusterGroup({ spiderfyOnMaxZoom: true, showCoverageOnHover: true, zoomToBoundsOnClick: true });
 
 		function populate() {
-			for (var i = 0; i < 100; i++) {
+			for (var i = 0; i < 1000; i++) {
 				var m = L.marker(getRandomLatLng(map));
 				markers.addLayer(m);
 			}
@@ -49,6 +50,7 @@
 					southWest.lng + lngSpan * Math.random());
 		}
 
+/*
 		markers.on('clusterclick', function (a) {
 			
 			if(a.layer.isSpiderfied()) {
@@ -58,7 +60,7 @@
 				a.layer.spiderfy();
 			}
 		});
-
+*/
 		populate();
 		map.addLayer(markers);
 	</script>
