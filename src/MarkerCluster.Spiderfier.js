@@ -32,8 +32,8 @@ L.MarkerCluster.include({
 
 		// If only one cluster can be open at a time close other clusters
 		if(this._group.spiderExclusive())
-      		this._group._unspiderfy();
-    
+			this._group._unspiderfy();
+
 		this._isSpiderfied = true;
 
 		//TODO Maybe: childMarkers order by distance to center
@@ -390,7 +390,7 @@ L.MarkerCluster.include({
 
 L.MarkerClusterGroup.include({
 	
-  spiderExclusive: function() {
+	spiderExclusive: function() {
 		// TODO
 		return false;
 	},

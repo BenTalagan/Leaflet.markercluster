@@ -50,13 +50,13 @@
 		}
 
 		markers.on('clusterclick', function (a) {
-      
-      if(a.layer.isSpiderfied()) {
-        a.layer.unspiderfy();
-      }
-      else
-  			a.layer.spiderfy();
-        
+			
+			if(a.layer.isSpiderfied()) {
+				a.layer.unspiderfy();
+			}
+			else {
+				a.layer.spiderfy();
+			}
 		});
 
 		populate();
