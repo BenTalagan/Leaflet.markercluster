@@ -883,7 +883,7 @@ export var MarkerClusterGroup = L.MarkerClusterGroup = L.FeatureGroup.extend({
 		if (this._shownPolygon) {
 			map.removeLayer(this._shownPolygon);
 		}
-		if (e.layer.getChildCount() > 2 && e.layer !== this._spiderfied) {
+		if (e.layer.getChildCount() > 2 && !e.layer._isSpiderfied) {
 			this._shownPolygon = new L.Polygon(e.layer.getConvexHull(), this.options.polygonOptions);
 			map.addLayer(this._shownPolygon);
 		}

@@ -13,9 +13,14 @@ L.MarkerCluster.include({
 
 	_circleSpiralSwitchover: 9, //show spiral instead of circle from this marker count upwards.
 								// 0 -> always spiral; Infinity -> always circle
+	_isSpiderfied: false,
+
+	isSpiderfied: function() {
+		return this._isSpiderfied;
+	},
 
 	spiderfy: function () {
-		if (this._group._spiderfied === this || this._group._inZoomAnimation) {
+		if (this._isSpiderfied === true) {
 			return;
 		}
 
@@ -25,8 +30,11 @@ L.MarkerCluster.include({
 			center = map.latLngToLayerPoint(this._latlng),
 			positions;
 
-		this._group._unspiderfy();
-		this._group._spiderfied = this;
+		// If only one cluster can be open at a time close other clusters
+		if(this._group.spiderExclusive())
+      		this._group._unspiderfy();
+    
+		this._isSpiderfied = true;
 
 		//TODO Maybe: childMarkers order by distance to center
 
@@ -44,12 +52,8 @@ L.MarkerCluster.include({
 
 	unspiderfy: function (zoomDetails) {
 		/// <param Name="zoomDetails">Argument from zoomanim if being called in a zoom animation or null otherwise</param>
-		if (this._group._inZoomAnimation) {
-			return;
-		}
 		this._animationUnspiderfy(zoomDetails);
-
-		this._group._spiderfied = null;
+		this._isSpiderfied = false;
 	},
 
 	_generatePointsCircle: function (count, centerPt) {
@@ -129,7 +133,7 @@ L.MarkerCluster.include({
 			markers: childMarkers
 		});
 		group._ignoreMove = false;
-		group._spiderfied = null;
+		this._isSpiderfied = false;
 	}
 });
 
@@ -385,9 +389,12 @@ L.MarkerCluster.include({
 
 
 L.MarkerClusterGroup.include({
-	//The MarkerCluster currently spiderfied (if any)
-	_spiderfied: null,
-
+	
+  spiderExclusive: function() {
+		// TODO
+		return false;
+	},
+  
 	unspiderfy: function () {
 		this._unspiderfy.apply(this, arguments);
 	},
@@ -446,15 +453,25 @@ L.MarkerClusterGroup.include({
 	},
 
 	_unspiderfy: function (zoomDetails) {
-		if (this._spiderfied) {
-			this._spiderfied.unspiderfy(zoomDetails);
-		}
+		// Unspiderfy everyone
+		this._featureGroup.eachLayer(function (c) {
+			if (c instanceof L.MarkerCluster) {
+				if(c._isSpiderfied) {
+					c.unspiderfy(zoomDetails);
+				}
+			}
+		});
 	},
 
 	_noanimationUnspiderfy: function () {
-		if (this._spiderfied) {
-			this._spiderfied._noanimationUnspiderfy();
-		}
+		// Unspiderfy everyone
+		this._featureGroup.eachLayer(function (c) {
+			if (c instanceof L.MarkerCluster) {
+				if(c._isSpiderfied) {
+					c._noanimationUnspiderfy();
+				}
+			}
+		});
 	},
 
 	//If the given layer is currently being spiderfied then we unspiderfy it so it isn't on the map anymore etc
