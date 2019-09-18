@@ -27,7 +27,16 @@ L.DistanceGrid.prototype = {
 	},
 
 	//Returns true if the object was found
-	removeObject: function (obj, point) {
+	removeObject: function (obj) {
+		var stamp = L.Util.stamp(obj);
+		var point = this._objectPoint[stamp];
+		
+		if(!point)
+		{
+			//console.log("Tried to remove an object from a grid but it is not there!!")
+			return false;
+		}
+		
 		var x = this._getCoord(point.x),
 		    y = this._getCoord(point.y),
 		    grid = this._grid,
@@ -35,17 +44,19 @@ L.DistanceGrid.prototype = {
 		    cell = row[x] = row[x] || [],
 		    i, len;
 
-		delete this._objectPoint[L.Util.stamp(obj)];
-
 		for (i = 0, len = cell.length; i < len; i++) {
 			if (cell[i] === obj) {
 
+				// Remove object from cell
 				cell.splice(i, 1);
 
+				// Delete the cell if empty
 				if (len === 1) {
 					delete row[x];
 				}
 
+				// Remove object from stamp tracker
+				delete this._objectPoint[stamp];
 				return true;
 			}
 		}
@@ -90,12 +101,16 @@ L.DistanceGrid.prototype = {
 					if (cell) {
 
 						for (k = 0, len = cell.length; k < len; k++) {
-							obj = cell[k];
-							stamp = L.Util.stamp(obj);
-							opoint = objectPoint[stamp];
+							
+							// Get the kth obj in the cell, and its stamp
+							obj 		= cell[k];
+							stamp 	= L.Util.stamp(obj);
+							
+							// get the point from the stamp
+							opoint 	= objectPoint[stamp];
 
 							if(!opoint)
-								continue;
+								throw "what ???? The object is in the grid but not in the list";
 
 							dist = this._sqDist(opoint, point);
 							if (dist < closestDistSq ||

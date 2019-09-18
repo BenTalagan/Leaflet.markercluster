@@ -696,7 +696,7 @@ export var MarkerClusterGroup = L.MarkerClusterGroup = L.FeatureGroup.extend({
 			minZoom = Math.floor(this._map.getMinZoom());
 
 		for (; z >= minZoom; z--) {
-			if (!gridUnclustered[z].removeObject(marker, map.project(marker.getLatLng(), z))) {
+			if (!gridUnclustered[z].removeObject(marker)) {
 				break;
 			}
 		}
@@ -769,7 +769,7 @@ export var MarkerClusterGroup = L.MarkerClusterGroup = L.FeatureGroup.extend({
 				otherMarker = cluster._markers[0] === marker ? cluster._markers[1] : cluster._markers[0];
 
 				//Update distance grid
-				gridClusters[cluster._zoom].removeObject(cluster, map.project(cluster._cLatLng, cluster._zoom));
+				gridClusters[cluster._zoom].removeObject(cluster);
 				gridUnclustered[cluster._zoom].addObject(otherMarker, map.project(otherMarker.getLatLng(), cluster._zoom));
 
 				//Move otherMarker up to parent
