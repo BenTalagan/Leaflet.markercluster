@@ -107,10 +107,12 @@ export var MarkerClusterGroup = L.MarkerClusterGroup = L.FeatureGroup.extend({
 
 		//If we have already clustered we'll need to add this one to a cluster
 
+		/* TODO : ONE
 		if (this._unspiderfy) {
 			this._unspiderfy();
 		}
-
+		*/
+		
 		this._addLayer(layer, this._maxZoom);
 		this.fire('layeradd', { layer: layer });
 
@@ -123,7 +125,7 @@ export var MarkerClusterGroup = L.MarkerClusterGroup = L.FeatureGroup.extend({
 		var visibleLayer = layer,
 		    currentZoom = this._zoom;
 		if (layer.__parent) {
-			while (visibleLayer.__parent._zoom >= currentZoom) {
+			while (visibleLayer.__parent && visibleLayer.__parent._zoom >= currentZoom) {
 				visibleLayer = visibleLayer.__parent;
 			}
 		}
@@ -162,11 +164,15 @@ export var MarkerClusterGroup = L.MarkerClusterGroup = L.FeatureGroup.extend({
 		if (!layer.__parent) {
 			return this;
 		}
-
+/*
 		if (this._unspiderfy) {
 			this._unspiderfy();
 			this._unspiderfyLayer(layer);
 		}
+*/		
+		// If we were in spiderfied cluster, close brutally the cluster
+		if(layer.__parent instanceof L.MarkerCluster && layer.__parent._isSpiderfied)
+			layer.__parent._noanimationUnspiderfy();
 
 		//Remove the marker from clusters
 		this._removeLayer(layer, true);
@@ -800,6 +806,7 @@ export var MarkerClusterGroup = L.MarkerClusterGroup = L.FeatureGroup.extend({
 
 	//Override L.Evented.fire
 	fire: function (type, data, propagate) {
+		
 		if (data && data.layer instanceof L.MarkerCluster) {
 			//Prevent multiple clustermouseover/off events if the icon is made up of stacked divs (Doesn't work in ie <= 8, no relatedTarget)
 			if (data.originalEvent && this._isOrIsParent(data.layer._icon, data.originalEvent.relatedTarget)) {
@@ -854,7 +861,7 @@ export var MarkerClusterGroup = L.MarkerClusterGroup = L.FeatureGroup.extend({
 	_zoomOrSpiderfy: function (e) {
 		var cluster = e.layer,
 		    bottomCluster = cluster;
-
+				
 		while (bottomCluster._childClusters.length === 1) {
 			bottomCluster = bottomCluster._childClusters[0];
 		}
@@ -974,9 +981,9 @@ export var MarkerClusterGroup = L.MarkerClusterGroup = L.FeatureGroup.extend({
 	//Zoom: Zoom to start adding at (Pass this._maxZoom to start at the bottom)
 	_addLayer: function (layer, zoom) {
 		var gridClusters = this._gridClusters,
-		    gridUnclustered = this._gridUnclustered,
+			gridUnclustered = this._gridUnclustered,
 			minZoom = Math.floor(this._map.getMinZoom()),
-		    markerPoint, z;
+			markerPoint, z;
 
 		if (this.options.singleMarkerMode) {
 			this._overrideMarkerIcon(layer);
@@ -1001,28 +1008,27 @@ export var MarkerClusterGroup = L.MarkerClusterGroup = L.FeatureGroup.extend({
 			if (closest) {
 				var parent = closest.__parent;
 				if (parent) {
+			
 					this._removeLayer(closest, false);
+				
+					//Create new cluster with these 2 in it
+					var newCluster = new this._markerCluster(this, zoom, closest, layer);
+					gridClusters[zoom].addObject(newCluster, this._map.project(newCluster._cLatLng, zoom));
+					closest.__parent = newCluster;
+					layer.__parent = newCluster;
+
+					var lastParent = newCluster;
+					for (z = zoom - 1; z > parent._zoom; z--) {
+						lastParent = new this._markerCluster(this, z, lastParent);
+						gridClusters[z].addObject(lastParent, this._map.project(closest.getLatLng(), z));
+					}
+					parent._addChild(lastParent);
+					
+					//Remove closest from this zoom level and any above that it is in, replace with newCluster
+					this._removeFromGridUnclustered(closest, zoom);
+				
+					return;
 				}
-
-				//Create new cluster with these 2 in it
-
-				var newCluster = new this._markerCluster(this, zoom, closest, layer);
-				gridClusters[zoom].addObject(newCluster, this._map.project(newCluster._cLatLng, zoom));
-				closest.__parent = newCluster;
-				layer.__parent = newCluster;
-
-				//First create any new intermediate parent clusters that don't exist
-				var lastParent = newCluster;
-				for (z = zoom - 1; z > parent._zoom; z--) {
-					lastParent = new this._markerCluster(this, z, lastParent);
-					gridClusters[z].addObject(lastParent, this._map.project(closest.getLatLng(), z));
-				}
-				parent._addChild(lastParent);
-
-				//Remove closest from this zoom level and any above that it is in, replace with newCluster
-				this._removeFromGridUnclustered(closest, zoom);
-
-				return;
 			}
 
 			//Didn't manage to cluster in at this zoom, record us as a marker here and continue upwards

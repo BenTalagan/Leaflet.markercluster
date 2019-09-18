@@ -3,8 +3,13 @@
 <head>
 	<title>Leaflet debug page</title>
 
+  <!--
 	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" integrity="sha512-07I2e+7D8p6he1SIM+1twR5TIrhUQn9+I6yjqD53JQjFiMf8EtC93ty0/5vJTZGF8aAocvHYNEDJajGdNx1IsQ==" crossorigin="" />
-	<script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet-src.js" integrity="sha512-WXoSHqw/t26DszhdMhOXOkI7qCiv5QWXhH9R7CgvgZMHz1ImlkVQ3uNsiQKu5wwbbxtPzFXd1hK4tzno2VqhpA==" crossorigin=""></script>
+	<script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet-src.js" integrity="sha512-WXoSHqw/t26DszhdMhOXOkI7qCiv5QWXhH9R7CgvgZMHz1ImlkVQ3uNsiQKu5wwbbxtPzFXd1hK4tzno2VqhpA==" crossorigin=""></script> -->
+  
+  <link rel="stylesheet" href="./leaflet-1.5.1/leaflet.css"/>
+	<script src="./leaflet-1.5.1/leaflet-src.js"></script>
+  
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link rel="stylesheet" href="screen.css" />
 
@@ -29,12 +34,16 @@
 		var map = L.map('map', {center: latlng, zoom: 15, layers: [tiles]});
 
 //		var markers = L.markerClusterGroup({ spiderfyOnMaxZoom: false, showCoverageOnHover: false, zoomToBoundsOnClick: false });
-		var markers = L.markerClusterGroup({ spiderfyOnMaxZoom: true, showCoverageOnHover: true, zoomToBoundsOnClick: true });
+		var markers = L.markerClusterGroup({ singleMarkerMode:false, spiderfyOnMaxZoom: true, showCoverageOnHover: true, zoomToBoundsOnClick: true });
+
+
+		var markerList = [];
 
 		function populate() {
 			for (var i = 0; i < 1000; i++) {
 				var m = L.marker(getRandomLatLng(map));
 				markers.addLayer(m);
+				markerList.push(m);
 			}
 			return false;
 		}
@@ -49,6 +58,19 @@
 					southWest.lat + latSpan * Math.random(),
 					southWest.lng + lngSpan * Math.random());
 		}
+    
+    
+    setInterval(function() {
+      var i = Math.floor(markerList.length * Math.random());
+      var l = markerList[i];
+        var latLng = l.getLatLng();
+      
+        latLng.lat += (0.5 - Math.random()) * 0.00005
+        latLng.lon += (0.5 - Math.random()) * 0.00005
+        
+        l.setLatLng(latLng);
+      
+    }, 10);
 
 /*
 		markers.on('clusterclick', function (a) {
